@@ -1,0 +1,19 @@
+\changetocdepth {4}
+\babel@toc {brazil}{}\relax 
+\babel@toc {brazil}{}\relax 
+\setlength {\cftchapterindent }{\cftlastnumwidth } \setlength {\cftchapternumwidth }{2em}
+\setlength {\cftchapterindent }{0em} \setlength {\cftchapternumwidth }{\cftlastnumwidth }
+\contentsline {chapter}{\chapternumberline {1}\MakeTextUppercase []{Introdução}}{3}{chapter.1}%
+\setlength {\cftchapterindent }{0em} \setlength {\cftchapternumwidth }{\cftlastnumwidth }
+\contentsline {chapter}{\chapternumberline {2}\MakeTextUppercase []{Desenvolvimento}}{4}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Contexto, arquitetura e viabilidade}{4}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Defeitos e contenção}{4}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Qualidade e rastreabilidade}{5}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Estratégia de testes}{5}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Dashboard, fluxo e valor agregado}{5}{section.2.5}%
+\contentsline {section}{\numberline {2.6}Comunicação, saúde e ética}{6}{section.2.6}%
+\contentsline {section}{\numberline {2.7}Consolidação no MPS.BR}{6}{section.2.7}%
+\setlength {\cftchapterindent }{0em} \setlength {\cftchapternumwidth }{\cftlastnumwidth }
+\contentsline {chapter}{\chapternumberline {3}\MakeTextUppercase []{Análise crítica da adoção da medição}}{7}{chapter.3}%
+\setlength {\cftchapterindent }{0em} \setlength {\cftchapternumwidth }{\cftlastnumwidth }
+\contentsline {chapter}{\chapternumberline {4}\MakeTextUppercase []{Conclusão}}{8}{chapter.4}%

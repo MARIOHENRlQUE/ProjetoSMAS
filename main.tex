@@ -1,0 +1,119 @@
+% Relatório Executivo — Sistema de Medição e Análise de Software (SMAS)
+% Compilação sugerida: latexmk -pdf main.tex (distribuição TeX com abnTeX2)
+\documentclass[12pt,openright,oneside,a4paper,brazil]{abntex2}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\titulo{Sistema de Medição e Análise de Software (SMAS)\\
+\large Relatório Executivo: estabilidade e qualidade do módulo de pagamentos da RetailTech}
+\autor{João Pedro Pereira dos Santos e Santos\\Mario Henrique Pereira de Assis}
+\local{Feira de Santana -- BA}
+\data{2026}
+\instituicao{\textbf{UNIFAN}}
+\tipotrabalho{Relatório Executivo}
+\orientador{Professora Soraia}
+\preambulo{Relatório apresentado à UNIFAN como parte das atividades acadêmicas, sob orientação da Professora Soraia.}
+
+\begin{document}
+\selectlanguage{brazil}
+\frenchspacing
+
+\imprimircapa
+\imprimirfolhaderosto*
+
+\pdfbookmark[0]{\contentsname}{toc}
+\tableofcontents*
+\cleardoublepage
+
+\chapter{Introdução}
+
+A RetailTech é um e-commerce de alto volume cujo fluxo de checkout processa até 2.400 pedidos pagos por hora no pico. Instabilidades no carrinho e, sobretudo, no módulo de pagamentos provocam abandono, chargebacks e alto custo de recuperação. Este relatório propõe um Sistema de Medição e Análise de Software (SMAS) para transformar tais riscos em decisões verificáveis. A proposta combina atributos de qualidade da ISO/IEC 25010, práticas de teste e gestão de fluxo, princípios de valor agregado e o MPS.BR nível G.
+
+O objetivo não é produzir indicadores isolados, mas estabelecer uma linha de base, critérios de aceitação mensuráveis, ciclo de feedback e governança ética. Os dados apresentados são hipotéticos, porém coerentes com um ambiente de varejo digital de grande porte.
+
+\chapter{Desenvolvimento}
+
+\section{Contexto, arquitetura e viabilidade}
+
+O fluxo arquitetural parte de Web/Mobile, atravessa CDN/WAF e API Gateway e alcança serviços de carrinho e checkout. O serviço de pagamentos orquestra autorização, captura, estorno, idempotência, antifraude e adaptadores para PSPs e adquirentes. Confirmações seguem de forma assíncrona a Pedidos e Estoque, preferencialmente pela combinação de fila e padrão \textit{outbox}.
+
+O diagnóstico apontou cobertura de apenas 38\% no adaptador de pagamentos, compartilhamento de tabelas entre Carrinho e Pagamentos, idempotência incompleta, timeout fixo e baixa observabilidade. A estimativa de custo da não qualidade usa 1.200 tentativas de checkout por minuto, ticket médio de R\$~185,00, aprovação normal de 72\% e conversão irrecuperável de 35\%. Assim:
+
+\begin{equation}
+  \text{Perda/min} = 1200 \times 185 \times 0{,}72 \times 0{,}35 = \text{R\$~55.944,00}.
+\end{equation}
+
+Somando R\$~80,00 por minuto de operação de incidente, o custo direto é R\$~56.024,00 por minuto. Dois incidentes mensais de 12 minutos, mais chargebacks estimados em R\$~29.736,00/mês, levam a um CNQ mensal aproximado de R\$~1.374.312,00. Portanto, há justificativa econômica para investir em testes, telemetria e resiliência.
+
+\section{Defeitos e contenção}
+
+Os 50 defeitos mensais da linha de base foram classificados como funcionais (18), de integração (14), desempenho (10) e segurança (8). A severidade separa efeitos baixos, médios, altos e críticos; a prioridade P1--P4 representa a urgência de negócio. Houve 14 defeitos críticos e 20 P1, com maior concentração em captura duplicada, webhooks, timeouts e proteção de dados.
+
+Com 25 KLOC analisados, a densidade observada é:
+
+\begin{equation}
+  DD = \frac{50\ \text{defeitos}}{25\ \text{KLOC}} = 2{,}00\ \text{defeitos/KLOC}.
+\end{equation}
+
+As metas da próxima release são DDE pré-produção de pelo menos 85\% para defeitos S3/S4, no máximo três P1 escapados e densidade de no máximo 1,20 defeitos/KLOC. A classificação padronizada permite agir por risco e aprender com causas, e não usar contagem de bugs como julgamento de pessoas.
+
+\section{Qualidade e rastreabilidade}
+
+Os atributos ISO/IEC 25010 escolhidos são confiabilidade, eficiência de desempenho, segurança e usabilidade. Confiabilidade protege receita e conciliação; desempenho reduz abandono e saturação; segurança protege dados, tokens e transações; usabilidade previne repetição de cobrança e reduz incerteza do comprador.
+
+Requisitos de negócio são rastreados a critérios quantitativos. Os principais são disponibilidade mensal de pagamento de pelo menos 99,95\%, p95 de autorização de até 2,0 s sob 1.200 tentativas/minuto, idempotência em 100\% das capturas, zero PAN/CVV em logs e validação HMAC em 100\% dos webhooks críticos. Essa matriz torna explícita a evidência necessária para aceitar uma entrega.
+
+\section{Estratégia de testes}
+
+A pirâmide concentra aproximadamente 70\% dos testes no core financeiro unitário, 20\% em integração e contrato de gateway/adquirente e 10\% em jornadas E2E de checkout. Carga, segurança e caos são transversais. A cobertura alvo é 80\% de linhas e 70\% de condições no core; o \textit{pass rate} deve atingir 98\% e a taxa de flakiness ficar abaixo de 1\%.
+
+A eficiência de detecção de defeitos é calculada por:
+
+\begin{equation}
+  DDE = \frac{\text{defeitos pré-produção}}{\text{defeitos pré-produção}+\text{escapes em produção}} \times 100.
+\end{equation}
+
+O Ishikawa dos timeouts de Black Friday mostra causas combinadas: pool HTTP subdimensionado, retentativas síncronas sem \textit{jitter}, ausência de isolamento por adquirente, timeout único, dependência externa lenta, runbook não exercitado e ausência de percentis/correlação. As respostas incluem \textit{circuit breaker}, retries idempotentes exponenciais, telemetria e fila de confirmação.
+
+\section{Dashboard, fluxo e valor agregado}
+
+O dashboard tem quatro quadrantes: saúde do cliente/SLO; qualidade; fluxo; e entrega/valor. No sprint de dez dias úteis, o lead time mediano foi 8,2 dias (p85 de 13,6), cycle time mediano 4,1 dias (p85 de 7,3), throughput de 24 itens e WIP médio de 11, superior ao limite de 9.
+
+Na semana seis da refatoração, o BAC é R\$~480.000,00, PV é R\$~264.000,00, EV é R\$~216.000,00 e AC é R\$~300.000,00. Logo:
+
+\begin{align}
+ SPI &= \frac{EV}{PV} = \frac{216.000}{264.000} = 0{,}82,\\
+ CPI &= \frac{EV}{AC} = \frac{216.000}{300.000} = 0{,}72.
+\end{align}
+
+O projeto está atrasado e com custo ineficiente. A previsão simplificada, $EAC = BAC/CPI$, é R\$~666.667,00, com variação negativa de R\$~186.667,00. Esses sinais recomendam limitar WIP, remover dependências e reestimar o escopo restante antes de autorizar novas frentes.
+
+\section{Comunicação, saúde e ética}
+
+Daily, planejamento, retrospectiva, revisão mensal e canal de incidentes críticos mantêm decisão e aprendizagem próximos do trabalho. Incidentes S3/S4 têm \textit{incident commander}, atualização a cada 30 minutos e post-mortem em até cinco dias úteis. Indicadores agregados de saúde incluem PR review time de 19 h (meta média até 12 h), churn de código de 34\% (faixa saudável entre 15\% e 25\%) e eNPS de +18 (meta de +25).
+
+O código de ética proíbe comparar velocity individual, punir quem encontra bugs, interpretar métricas únicas fora de contexto e usar dados individuais para ranking, remuneração ou sanção. A qualidade dos dados e a segurança psicológica são pré-condições para que os indicadores revelem problemas reais.
+
+\section{Consolidação no MPS.BR}
+
+O MPS.BR nível G foi selecionado por focar Gerência de Projetos (GPR) e Gerência de Requisitos (GRE), oferecendo disciplina proporcional ao contexto. Backlog e critérios de aceitação dão suporte à especificação e rastreabilidade; sprints, CI, dashboard e retrospectivas tornam o acompanhamento contínuo. CNQ e riscos sustentam planejamento; taxonomia, DDE e testes sustentam qualidade; lead time, SPI e CPI sustentam controle; comunicação e ética sustentam institucionalização.
+
+\chapter{Análise crítica da adoção da medição}
+
+A medição só produz valor quando sua pergunta decisória é clara. Densidade de defeitos pode crescer porque a detecção melhorou; throughput não equivale a valor entregue; e CPI baixo requer investigação antes de reduzir escopo ou cobrar desempenho. Por isso, cada métrica deve ter definição operacional, origem, período comparável, responsável pelo dado e limitação conhecida.
+
+Há riscos de \textit{gaming}, custo de coleta e falsa precisão. Eles são mitigados por automação no pipeline, auditoria por amostragem, leitura de tendências e combinação de dados quantitativos com retrospectivas e post-mortems sem culpa. Metas devem proteger o cliente e orientar experimentos de melhoria, não substituir julgamento técnico. A maior evidência de sucesso será a redução sustentada de indisponibilidade e escape de defeitos sem deteriorar a saúde do time.
+
+\chapter{Conclusão}
+
+O SMAS proposto conecta impacto financeiro, qualidade de produto, testes, fluxo e governança. A linha de base demonstra que minutos de instabilidade têm custo expressivo e que a fragilidade no pagamento é mensurável e tratável. Com requisitos rastreáveis, testes em camadas, dashboard de SLO e EVMS, práticas do MPS.BR nível G e ética explícita, a RetailTech pode reduzir risco operacional e aumentar previsibilidade sem abandonar a agilidade. O próximo ciclo deve implantar a instrumentação, congelar as definições das métricas, executar a primeira release de contenção e revisar os resultados com evidências.
+
+\end{document}
